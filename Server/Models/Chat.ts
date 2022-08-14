@@ -18,4 +18,4 @@ const chatModel = new mongoose.Schema(
   }
 );
 
-const Chat = new mongoose.Model("Chat", chatModel);
+const Chat = mongoose.model("Chat", chatModel);
