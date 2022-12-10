@@ -1,5 +1,4 @@
 import { useState } from "react";
-import React from "react";
 import { useDispatch } from "react-redux";
 import {
   FormLabel,
@@ -11,6 +10,8 @@ import {
 } from "@chakra-ui/react";
 import { homeProgress } from "../../Redux/Actions/Progress";
 import Axios from "axios";
+import { useToast } from "@chakra-ui/react";
+import { toggleToast } from "../../Utils/commonFunctions";
 
 const Signup = () => {
   const [show, setShow] = useState(false);
@@ -18,10 +19,12 @@ const Signup = () => {
   const [color, setColor] = useState("");
   const [image, setImage] = useState("");
   const [disableBtn, setDisableBtn] = useState(false);
-  let disptach = useDispatch();
+  let dispatch = useDispatch();
+  const toast = useToast();
+
   const handleShow = () => setShow(!show);
   const uploadImage = async (e: any) => {
-    disptach(homeProgress(true));
+    dispatch(homeProgress(true));
     setDisableBtn(true);
     const data = new FormData();
     data.append("file", e.target.files[0]);
@@ -33,15 +36,15 @@ const Signup = () => {
         data
       );
       setImage(response.data.url);
-      disptach(homeProgress(false));
+      dispatch(homeProgress(false));
       setDisableBtn(false);
     } catch (err) {
       console.log(err);
-      disptach(homeProgress(false));
+      dispatch(homeProgress(false));
       setDisableBtn(false);
     }
   };
-  const handleSubmit = (e: any) => {
+  const handleSubmit = async (e: any) => {
     setMessage("");
     setColor("");
     e.preventDefault();
@@ -70,7 +73,24 @@ const Signup = () => {
       setMessage("PASSWORD DOES NOT MATCH");
     }
     postData = { ...postData, image };
-    console.log(postData);
+    try {
+      let res = await Axios.post(
+        `${
+          process.env.REACT_APP_NODE_ENV === "development"
+            ? process.env.REACT_APP_BASE_URL_DEV
+            : process.env.REACT_APP_BASE_URL_PROD
+        }signup`,
+        postData
+      );
+      if (res?.data?.statusCode === 400) {
+        toggleToast(toast, {
+          message: res?.data?.message,
+          error: true,
+        });
+      }
+    } catch (err) {
+      console.log(err);
+    }
   };
   return (
     <form onSubmit={handleSubmit}>

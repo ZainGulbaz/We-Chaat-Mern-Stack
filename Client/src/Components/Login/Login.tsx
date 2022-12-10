@@ -6,11 +6,17 @@ import {
   InputRightElement,
   Button,
 } from "@chakra-ui/react";
-
+import { getUrl, toggleToast } from "../../Utils/commonFunctions";
+import Axios from "axios";
+import { useToast } from "@chakra-ui/react";
+import { useDispatch } from "react-redux";
+import { homeProgress } from "../../Redux/Actions/Progress";
 const Login = () => {
   const [show, setShow] = useState(false);
+  const toast = useToast();
+  const dispatch = useDispatch();
 
-  const handleSubmit = (e: any) => {
+  const handleSubmit = async (e: any) => {
     e.preventDefault();
     interface PostData {
       email: string;
@@ -26,7 +32,26 @@ const Login = () => {
         postData = { ...postData, [obj.name]: obj.value };
       }
     });
-    console.log(postData);
+    try {
+      dispatch(homeProgress(true));
+      let response = await Axios.post(getUrl() + "login", postData);
+      if (response?.data?.statusCode === 200) {
+        toggleToast(toast, {
+          message: response?.data?.message,
+          error: false,
+        });
+        dispatch(homeProgress(false));
+      } else if (response?.data?.statusCode === 404) {
+        toggleToast(toast, {
+          message: response?.data?.message,
+          error: true,
+        });
+        dispatch(homeProgress(false));
+      }
+    } catch (err) {
+      console.log(err);
+      dispatch(homeProgress(false));
+    }
   };
   const handleShow = () => setShow(!show);
   return (

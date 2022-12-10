@@ -7,6 +7,10 @@ declare global {
       password: string;
       email: string;
       image: string;
+      id: number;
+      user: {
+        id: number;
+      };
     }
   }
 }
